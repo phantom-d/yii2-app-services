@@ -1,0 +1,40 @@
+# Your personal GitHub token
+github_token: <your-personal-github-token>
+# Read more: https://github.com/blog/1509-personal-api-tokens
+# You can generate it here: https://github.com/settings/tokens
+
+# Guest OS timezone
+timezone: Europe/London
+
+# Are we need check box updates for every 'vagrant up'?
+box_check_update: false
+
+# Virtual machine name
+machine_name: y2as
+
+# Virtual machine name
+domain_name: y2as.local
+
+# Virtual machine IP
+ip: 192.168.83.137
+
+# Provision scripts
+provision: debian
+
+# Virtual machine box
+vm_box: bento/debian-8.5
+    
+# Virtual machine box url
+# vm_box_url: 
+
+# Virtual machine CPU cores number
+cpus: 1
+
+# Virtual machine RAM
+memory: 512
+
+# Application path
+app_path: /var/www/y2as
+
+# Database name
+db_name: yii2services
