@@ -26,8 +26,15 @@ class Module extends \yii\base\Module
             }
         }
 
-        $viewPath = $this->getViewPath()
-            . DIRECTORY_SEPARATOR . end(explode('/', Yii::getAlias('@app')));
+
+        $viewPath = $this->getViewPath();
+        $appPath  = explode('/', Yii::getAlias('@app'));
+        $viewPath .= DIRECTORY_SEPARATOR . end($appPath);
+
+        if (isset(\Yii::$app->view->theme)) {
+            $viewPath = $this->getBasePath();
+        }
+
         $this->setViewPath($viewPath);
     }
 
