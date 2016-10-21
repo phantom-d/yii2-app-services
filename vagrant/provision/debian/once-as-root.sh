@@ -52,9 +52,6 @@ chown -R vagrant:vagrant ./xhprof
 echo "Done!"
 
 info "Update OS software"
-echo "deb http://nginx.org/packages/debian/ $(lsb_release -sc) nginx" | tee /etc/apt/sources.list.d/nginx.list
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ABF5BD827BD9BF62
-
 echo "deb http://packages.dotdeb.org $(lsb_release -sc) all" | tee /etc/apt/sources.list.d/dotdeb.list
 echo "deb-src http://packages.dotdeb.org $(lsb_release -sc) all" | tee -a /etc/apt/sources.list.d/dotdeb.list
 wget --quiet -O - https://www.dotdeb.org/dotdeb.gpg | apt-key add -
@@ -70,13 +67,6 @@ mkdir -p /etc/nginx/conf.d
 ln -s `echo ${app_path}`/vagrant/config/nginx-app.conf /etc/nginx/conf.d/app.conf
 echo "Done!"
 
-info "Configure Percona server"
-mkdir -p /etc/mysql/conf.d/
-[ -f /etc/mysql/conf.d/sql_mode.cnf ] && rm -f /etc/mysql/conf.d/sql_mode.cnf
-cp -f ${app_path}/vagrant/config/sql_mode.cnf /etc/mysql/conf.d/sql_mode.cnf
-chmod 644 /etc/mysql/conf.d/sql_mode.cnf
-echo "Done!"
-
 info "Install additional software"
 apt-get install -y git php5-dev php5-cli php5-fpm php5-intl php5-mysqlnd php5-curl php5-xdebug php5-xhprof\
                 php5-gd php5-imagick nginx mc htop graphviz gdebi locales-all mytop
@@ -89,25 +79,15 @@ echo "Done!"
 info "Configure locales"
 localectl set-locale LANG=ru_RU.utf8
 
-info "Prepare root password for Percona server"
-debconf-set-selections <<< "percona-server-server-5.7 percona-server-server/root_password password \"''\""
-debconf-set-selections <<< "percona-server-server-5.7 percona-server-server/root_password_again password \"''\""
+info "Prepare root password for MySQL server"
+debconf-set-selections <<< "mariadb-server-10.0 mysql-server/root_password password \"''\""
+debconf-set-selections <<< "mariadb-server-10.0 mysql-server/root_password_again password \"''\""
 echo "Done!"
 
-info "Install Percona server"
-wget --quiet https://repo.percona.com/apt/percona-release_0.1-3.$(lsb_release -sc)_all.deb -O /tmp/percona-release.deb
-gdebi -n /tmp/percona-release.deb
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9334A25F8507EFA5
-apt-get update -qq
-apt-get -q -y install percona-server-server-5.7
-echo "Done!"
+apt-get install -y mariadb-server-10.0
 
-info "Configure Percona server"
+info "Configure MySQL server"
 sed -i "s/.*bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/my.cnf
-mysql -e "DROP FUNCTION IF EXISTS fnv1a_64; CREATE FUNCTION fnv1a_64 RETURNS INTEGER SONAME 'libfnv1a_udf.so'"
-mysql -e "DROP FUNCTION IF EXISTS fnv_64; CREATE FUNCTION fnv_64 RETURNS INTEGER SONAME 'libfnv_udf.so'"
-mysql -e "DROP FUNCTION IF EXISTS murmur_hash; CREATE FUNCTION murmur_hash RETURNS INTEGER SONAME 'libmurmur_udf.so'"
-mysql -e "DROP USER IF EXISTS 'vagrant'@'%'; CREATE USER 'vagrant'@'%' IDENTIFIED BY 'vagrant'; GRANT ALL PRIVILEGES ON *.* TO 'vagrant'@'%'; FLUSH PRIVILEGES;"
 echo "Done!"
 
 info "Configure PHP-FPM"

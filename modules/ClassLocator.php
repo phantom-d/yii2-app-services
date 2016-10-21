@@ -48,7 +48,7 @@ abstract class ClassLocator extends Component
     {
         if ($this->defaultNamespace === null) {
             $this->defaultNamespace = 'common';
-            if ($this->module) {
+            if ($this->module && !($this->module instanceof \yii\base\Application)) {
                 $class = new \ReflectionClass($this->module);
                 $this->defaultNamespace = $class->getNamespaceName();
             }
@@ -57,8 +57,10 @@ abstract class ClassLocator extends Component
         }
         if ($this->namespace === null) {
             if ($this->module !== null) {
-                $class = new \ReflectionClass($this->module);
-                $this->namespace = $class->getNamespaceName() . '\\';
+                if (!($this->module instanceof \yii\base\Application)) {
+                    $class = new \ReflectionClass($this->module);
+                    $this->namespace = $class->getNamespaceName() . '\\';
+                }
             }
             $this->namespace .= end(explode('/', Yii::getAlias('@app')))
                 . ($this->id ? '\\' . $this->id : '');

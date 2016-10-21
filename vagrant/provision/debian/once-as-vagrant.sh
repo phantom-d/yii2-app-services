@@ -32,12 +32,14 @@ echo 'export XDEBUG_CONFIG="idekey=PHPSTORM"' | tee -a /home/vagrant/.bashrc
 . /home/vagrant/.bashrc
 
 rm -Rf ${COMPOSER_HOME}
-composer global config repositories.assets '{"type": "composer", "url": "https://asset-packagist.org"}'
 composer global config github-oauth.github.com ${github_token}
+composer global config repositories.assets '{"type": "composer", "url": "https://asset-packagist.org"}'
+composer global require "codeception/codeception=2.0.*" "codeception/specify=*" "codeception/verify=*" --no-update
 echo "Done!"
 
 info "Install plugins for composer and codeception"
 composer global install --no-progress --prefer-dist
+echo "Done!"
 
 info "Install project dependencies"
 cd ${app_path}
