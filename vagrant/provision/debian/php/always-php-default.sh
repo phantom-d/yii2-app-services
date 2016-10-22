@@ -11,3 +11,6 @@ function info {
 #== Provision script ==
 
 info "Provision-script user: `whoami`"
+
+info "Restart PHP 5 OS default"
+systemctl restart php5-fpm

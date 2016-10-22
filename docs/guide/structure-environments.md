@@ -39,4 +39,4 @@ The later config file overrides the former.
 
 Here's the full scheme:
 
-![Advanced application configs](images/advanced-app-configs.png)
+![Services application configs](images/advanced-app-configs.png)

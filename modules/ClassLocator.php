@@ -49,7 +49,7 @@ abstract class ClassLocator extends Component
         if ($this->defaultNamespace === null) {
             $this->defaultNamespace = 'common';
             if ($this->module && !($this->module instanceof \yii\base\Application)) {
-                $class = new \ReflectionClass($this->module);
+                $class                  = new \ReflectionClass($this->module);
                 $this->defaultNamespace = $class->getNamespaceName();
             }
 
@@ -58,7 +58,7 @@ abstract class ClassLocator extends Component
         if ($this->namespace === null) {
             if ($this->module !== null) {
                 if (!($this->module instanceof \yii\base\Application)) {
-                    $class = new \ReflectionClass($this->module);
+                    $class           = new \ReflectionClass($this->module);
                     $this->namespace = $class->getNamespaceName() . '\\';
                 }
             }
@@ -83,29 +83,58 @@ abstract class ClassLocator extends Component
      */
     public function getObject($name, $params = [], $strict = true)
     {
-        $className = '\\' . Inflector::id2camel($name, '_') . strval($this->suffix);
-        $class     = $this->namespace . $className;
+        try {
+            $className = '\\' . Inflector::id2camel($name, '_') . strval($this->suffix);
+            $class     = $this->namespace . $className;
 
-        if (false === class_exists($class)) {
-            $class = $this->defaultNamespace . $className;
-        }
-
-        if (class_exists($class)) {
-            if ($this instanceof \modules\Services) {
-                if (false === isset($params['module'])) {
-                    $params['module'] = &$this->module;
-                }
-            } else {
-                if ($params) {
-                    return new $class($params);
-                }
+            if (false === class_exists($class)) {
+                $class = $this->defaultNamespace . $className;
             }
-            return \yii\di\Instance::ensure($params, $class);
-        }
 
-        if ($strict) {
-            $message = Yii::t('yii', 'Calling unknown class: {class}', ['class' => $class]);
-            throw new UnknownClassException($message);
+            if (class_exists($class)) {
+                if ($this instanceof \modules\Services) {
+                    if (false === isset($params['module'])) {
+                        $params['module'] = &$this->module;
+                    }
+                } else {
+                    $reflector  = new \ReflectionClass($class);
+                    /* @var $parameters \ReflectionParameter */
+                    $parameters = $reflector->getMethod('__construct')->getParameters();
+                    if (count($parameters) > 1) {
+                        $params = (array)$params;
+                        $args   = [];
+                        foreach ($parameters as $index => $param) {
+                            $key        = $param->getName();
+                            $args[$key] = null;
+                            if (isset($params[$key])) {
+                                $args[$key] = $params[$key];
+                                unset($params[$key]);
+                            } elseif (isset($params[$index])) {
+                                $args[$key] = $params[$index];
+                                unset($params[$index]);
+                            } else {
+                                if ($param->isOptional()) {
+                                    $args[$key] = $param->getDefaultValue();
+                                }
+                            }
+                        }
+                        if (false === empty($params)) {
+                            $args['config'] = $params;
+                        }
+                        return $reflector->newInstanceArgs($args);
+                    } else {
+                        return new $class($params);
+                    }
+                }
+                return \yii\di\Instance::ensure($params, $class);
+            }
+
+            if ($strict) {
+                $message = Yii::t('yii', 'Calling unknown class: {class}', ['class' => $class]);
+                throw new UnknownClassException($message);
+            }
+        } catch (\Exception $e) {
+            throw $e;
         }
 
         return null;
@@ -151,7 +180,7 @@ abstract class ClassLocator extends Component
 
             throw new UnknownMethodException($message);
         } catch (\Exception $e) {
-            Yii::$app->getErrorHandler()->handleException($e);
+            throw $e;
         }
     }
 

@@ -17,7 +17,6 @@ cache:
 
 install:
   - travis_retry composer self-update && composer --version
-  - travis_retry composer global require "fxp/composer-asset-plugin:~1.1.0"
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
   - travis_retry composer install --dev --prefer-dist --no-interaction
 # codeception
@@ -35,7 +34,7 @@ install:
     cd ../../../
 
 before_script:
-  - mysql -e 'CREATE DATABASE yii2_advanced_tests;';
+  - mysql -e 'CREATE DATABASE yii2services_tests;';
   - cd tests/codeception/bin && php yii migrate --interactive=0 && cd ../../..
 
 script:

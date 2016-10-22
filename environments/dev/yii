@@ -23,6 +23,34 @@ $config = yii\helpers\ArrayHelper::merge(
     require(__DIR__ . '/console/config/main-local.php')
 );
 
+if (!YII_ENV_TEST && extension_loaded('xhprof')) {
+    xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+}
+
 $application = new yii\console\Application($config);
 $exitCode = $application->run();
+
+if (!YII_ENV_TEST && extension_loaded('xhprof')) {
+    $xhprofData  = xhprof_disable();
+
+    include_once __DIR__ . "/../xhprof/xhprof_lib/utils/xhprof_lib.php";
+    include_once __DIR__ . "/../xhprof/xhprof_lib/utils/xhprof_runs.php";
+
+    $xhprof_runs = new XHProfRuns_Default();
+
+    $xhprofUri = [];
+    
+    if (false === empty($argc)) {
+        $xhprofUri = $argc;
+    }
+
+    $xhprofKey = str_replace(
+        ['/', '.', '?', '&', ':'], //
+        ['_', '-', '~', ';', '@'], //
+        "yii-app-console" . ($xhprofUri ? '_' . urldecode(implode('__', $xhprofUri)) : '')
+    );
+
+    $runId = $xhprofRuns->save_run($xhprofData, $xhprofKey);
+}
+
 exit($exitCode);

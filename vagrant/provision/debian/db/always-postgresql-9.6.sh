@@ -11,3 +11,6 @@ function info {
 #== Provision script ==
 
 info "Provision-script user: `whoami`"
+
+info "Restart Percona-5.7"
+systemctl restart postgresql

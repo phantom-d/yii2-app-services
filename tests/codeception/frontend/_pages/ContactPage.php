@@ -18,7 +18,11 @@ class ContactPage extends BasePage
      */
     public function submit(array $contactData)
     {
-        $contactForm = new ContactForm;
+        $contactForm = \Yii::$app->getModule('site')
+            ->services
+            ->getObject('site')
+            ->models
+            ->getObject('ContactForm');
  
         foreach ($contactData as $field => $value) {
             $inputType = $field === 'body' ? 'textarea' : 'input';

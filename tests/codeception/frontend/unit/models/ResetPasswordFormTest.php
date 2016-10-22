@@ -14,7 +14,11 @@ class ResetPasswordFormTest extends DbTestCase
      */
     public function testResetWrongToken()
     {
-        new ResetPasswordForm('notexistingtoken_1391882543');
+        \Yii::$app->getModule('site')
+            ->services
+            ->getObject('site')
+            ->models
+            ->getObject('ResetPasswordForm', 'notexistingtoken_1391882543');
     }
 
     /**
@@ -22,12 +26,20 @@ class ResetPasswordFormTest extends DbTestCase
      */
     public function testResetEmptyToken()
     {
-        new ResetPasswordForm('');
+        \Yii::$app->getModule('site')
+            ->services
+            ->getObject('site')
+            ->models
+            ->getObject('ResetPasswordForm');
     }
 
     public function testResetCorrectToken()
     {
-        $form = new ResetPasswordForm($this->user[0]['password_reset_token']);
+        $form = \Yii::$app->getModule('site')
+            ->services
+            ->getObject('site')
+            ->models
+            ->getObject('ResetPasswordForm', $this->user[0]['password_reset_token']);
         expect('password should be resetted', $form->resetPassword())->true();
     }
 
@@ -35,9 +47,10 @@ class ResetPasswordFormTest extends DbTestCase
     {
         return [
             'user' => [
-                'class' => UserFixture::className(),
+                'class'    => UserFixture::className(),
                 'dataFile' => '@tests/codeception/frontend/unit/fixtures/data/models/user.php'
             ],
         ];
     }
+
 }

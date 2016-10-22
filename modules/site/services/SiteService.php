@@ -4,6 +4,7 @@ namespace modules\site\services;
 
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\base\InvalidParamException;
 
 /**
  * Class SiteService - Site service
@@ -123,7 +124,12 @@ class SiteService extends \modules\BaseService
     public function resetPassword($token, $data = [])
     {
         $return = false;
-        $model  = $this->models->getObject('ResetPasswordForm', $token);
+        
+        try {
+            $model  = $this->models->getObject('ResetPasswordForm', $token);
+        } catch (InvalidParamException $e) {
+            throw $e;
+        }
 
         if ($model->load($data) && $model->validate() && $model->resetPassword()) {
             Yii::$app->session->setFlash('success', 'New password was saved.');

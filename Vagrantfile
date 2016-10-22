@@ -61,6 +61,9 @@ Vagrant.configure(2) do |config|
 
   # network settings
   config.vm.network 'private_network', ip: options['ip']
+  if options.has_key?('vagrant_ssh')
+    config.vm.network "forwarded_port", guest: 22, host: options['vagrant_ssh'], id: 'ssh'
+  end
 
   # sync: folder 'yii2-app-services' (host machine) -> folder '/var/www/y2as' (guest machine)
   config.vm.synced_folder './', options['app_path'], owner: 'vagrant', group: 'vagrant'
@@ -79,9 +82,24 @@ Vagrant.configure(2) do |config|
   config.hostmanager.aliases            = domains.values
 
   # provisioners
-  config.vm.provision 'shell', path: "./vagrant/provision/#{options['provision']}/once-as-root.sh", args: [options['timezone'], options['app_path'], options['ip'], options['db_name']]
+  # once run
+  config.vm.provision 'shell', path: "./vagrant/provision/#{options['provision']}/once-as-root.sh", args: [options['app_path'], options['timezone']]
+  config.vm.provision 'shell', path: "./vagrant/provision/#{options['provision']}/db/once-#{options['db_server']}.sh", args: [options['app_path'], options['db_name']]
+  config.vm.provision 'shell', path: "./vagrant/provision/#{options['provision']}/web-server/once-#{options['web_server']}.sh", args: [options['app_path']]
+  config.vm.provision 'shell', path: "./vagrant/provision/#{options['provision']}/php/once-#{options['php']}.sh", args: [options['app_path'], options['ip']]
+  config.vm.provision 'shell', inline: <<-SHELL
+    echo " "
+    echo "--> Install composer"
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    echo "--> Done!"
+    echo " "
+  SHELL
   config.vm.provision 'shell', path: "./vagrant/provision/#{options['provision']}/once-as-vagrant.sh", args: [options['github_token'], options['app_path']], privileged: false
-  config.vm.provision 'shell', path: "./vagrant/provision/#{options['provision']}/always-as-root.sh", run: 'always'
+  
+  # always run
+  config.vm.provision 'shell', path: "./vagrant/provision/#{options['provision']}/php/always-#{options['php']}.sh", run: 'always'
+  config.vm.provision 'shell', path: "./vagrant/provision/#{options['provision']}/web-server/always-#{options['web_server']}.sh", run: 'always'
+  config.vm.provision 'shell', path: "./vagrant/provision/#{options['provision']}/db/always-#{options['db_server']}.sh", run: 'always'
 
   # post-install message (vagrant console)
   config.vm.post_up_message = "Frontend URL: http://#{domains[:frontend]}\nBackend URL: http://#{domains[:backend]}\nXHprof URL: http://#{domains[:xhprof]}"

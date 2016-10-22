@@ -11,3 +11,6 @@ function info {
 #== Provision script ==
 
 info "Provision-script user: `whoami`"
+
+info "Restart MariaDB-10.0"
+systemctl restart mysql

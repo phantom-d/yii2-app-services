@@ -170,7 +170,7 @@ class DefaultController extends Controller
      * @return mixed
      * @throws BadRequestHttpException
      */
-    public function actionResetPassword($token)
+    public function actionResetPassword($token = '')
     {
         try {
             $results = $this->module->services

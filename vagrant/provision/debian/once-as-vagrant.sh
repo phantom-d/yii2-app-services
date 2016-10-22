@@ -19,15 +19,14 @@ info "Provision-script user: `whoami`"
 
 info "Configure composer"
 sed -i "s/^COMPOSER_HOME.*//" /home/vagrant/.profile
+sed -i "s/^XDEBUG_CONFIG.*//" /home/vagrant/.profile
 sed -i "s/^PATH.*//" /home/vagrant/.profile
-sed -i "s/^export COMPOSER_HOME.*//" /home/vagrant/.bashrc
 sed -i '/^\s*$/d' /home/vagrant/.profile
 sed -i '/^\s*$/d' /home/vagrant/.bashrc
 
-echo 'COMPOSER_HOME="/home/vagrant/.config/composer"' | tee -a /home/vagrant/.profile
+echo 'COMPOSER_HOME="/home/vagrant/.composer"' | tee -a /home/vagrant/.profile
 echo 'PATH='${app_path}'/vendor/bin:${COMPOSER_HOME}/vendor/bin:$PATH' | tee -a /home/vagrant/.profile
-echo 'export COMPOSER_HOME="/home/vagrant/.config/composer"' | tee -a /home/vagrant/.bashrc
-echo 'export XDEBUG_CONFIG="idekey=PHPSTORM"' | tee -a /home/vagrant/.bashrc
+echo 'XDEBUG_CONFIG="idekey=PHPSTORM"' | tee -a /home/vagrant/.profile
 
 . /home/vagrant/.bashrc
 
@@ -35,31 +34,32 @@ rm -Rf ${COMPOSER_HOME}
 composer global config github-oauth.github.com ${github_token}
 composer global config repositories.assets '{"type": "composer", "url": "https://asset-packagist.org"}'
 composer global require "codeception/codeception=2.0.*" "codeception/specify=*" "codeception/verify=*" --no-update
-echo "Done!"
+info "Done!"
 
 info "Install plugins for composer and codeception"
 composer global install --no-progress --prefer-dist
-echo "Done!"
+info "Done!"
 
 info "Install project dependencies"
 cd ${app_path}
 composer --no-progress --prefer-dist install
-echo "Done!"
+info "Done!"
 
 info "Init project"
 ./init --env=Development --overwrite=y
-echo "Done!"
+info "Done!"
 
 info "Apply migrations"
 ./yii migrate --interactive=0
-echo "Done!"
+info "Done!"
 
 info "Create bash-alias 'app' for vagrant user"
 echo 'alias app="cd '${app_path}'"' | tee /home/vagrant/.bash_aliases
 echo 'alias tests="cd '${app_path}'/tests"' | tee -a /home/vagrant/.bash_aliases
-echo "Done!"
+echo 'alias logs="cd '${app_path}'/vagrant/logs"' | tee -a /home/vagrant/.bash_aliases
+info "Done!"
 
 info "Enabling colorized prompt for guest console"
 sed -i "s/#force_color_prompt=yes/force_color_prompt=yes/" /home/vagrant/.bashrc
 
-echo "Script once-as-vagrant.sh Done"
+echo "Script `basename $0` Done"

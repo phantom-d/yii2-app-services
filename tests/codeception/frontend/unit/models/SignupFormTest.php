@@ -14,9 +14,13 @@ class SignupFormTest extends DbTestCase
 
     public function testCorrectSignup()
     {
-        $model = new SignupForm([
+        $model = \Yii::$app->getModule('site')
+            ->services
+            ->getObject('site')
+            ->models
+            ->getObject('SignupForm', [
             'username' => 'some_username',
-            'email' => 'some_email@example.com',
+            'email'    => 'some_email@example.com',
             'password' => 'some_password',
         ]);
 
@@ -31,9 +35,13 @@ class SignupFormTest extends DbTestCase
 
     public function testNotCorrectSignup()
     {
-        $model = new SignupForm([
+        $model = \Yii::$app->getModule('site')
+            ->services
+            ->getObject('site')
+            ->models
+            ->getObject('SignupForm', [
             'username' => 'troy.becker',
-            'email' => 'nicolas.dianna@hotmail.com',
+            'email'    => 'nicolas.dianna@hotmail.com',
             'password' => 'some_password',
         ]);
 
@@ -44,9 +52,10 @@ class SignupFormTest extends DbTestCase
     {
         return [
             'user' => [
-                'class' => UserFixture::className(),
+                'class'    => UserFixture::className(),
                 'dataFile' => '@tests/codeception/frontend/unit/fixtures/data/models/user.php',
             ],
         ];
     }
+
 }

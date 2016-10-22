@@ -18,6 +18,9 @@ domain_name: y2as.local
 # Virtual machine IP
 ip: 192.168.83.137
 
+# Vagrant SSH port forwarding
+# vagrant_ssh: 2222
+
 # Provision scripts
 provision: debian
 
@@ -35,6 +38,15 @@ memory: 512
 
 # Application path
 app_path: /var/www/y2as
+
+# PHP language
+php: php-default
+
+# Web server
+web_server: web-default
+
+# Database server
+db_server: mariadb-10.0
 
 # Database name
 db_name: yii2services

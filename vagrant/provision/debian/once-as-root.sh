@@ -2,13 +2,8 @@
 
 #== Import script args ==
 
-timezone=$(echo "$1")
-app_path=$(echo "$2")
-www_path=$(dirname ${app_path})
-guest_ip=$(echo "$3")
-db_name=$(echo "$4")
-host_ip=$(echo ${guest_ip} | sed 's/[[:digit:]][[:digit:]][[:digit:]]$/1/g')
-gateway=$(netstat -nr | awk '$1 == "0.0.0.0"{print$2}')
+app_path=$(echo "$1")
+timezone=$(echo "$2")
 
 #== Bash helpers ==
 
@@ -24,32 +19,9 @@ info "Provision-script user: `whoami`"
 
 export DEBIAN_FRONTEND=noninteractive
 
-if [ ! -f /swapfile ]; then
-    info "Allocate swap for Percona server 5.7"
-    fallocate -l 2048M /swapfile
-    chmod 600 /swapfile
-    mkswap /swapfile
-    swapon /swapfile
-    echo '/swapfile none swap defaults 0 0' | tee -a /etc/fstab
-fi
-
 info "Configure timezone"
 echo ${timezone} | tee /etc/timezone
 dpkg-reconfigure --frontend noninteractive tzdata
-
-
-info "Install XHprof profiler"
-[ ! -d ${www_path} ] && mkdir -p ${www_path}
-cd ${www_path}
-
-[ -d './xhprof' ] && rm -Rf xhprof
-
-wget --quiet http://pecl.php.net/get/xhprof-0.9.4.tgz -O xhprof.tgz
-gzip -d xhprof.tgz && tar -xvf xhprof.tar
-mv -f xhprof-0.9.4 xhprof && rm -f xhprof.tar package.xml
-mkdir ./xhprof/logs
-chown -R vagrant:vagrant ./xhprof
-echo "Done!"
 
 info "Update OS software"
 echo "deb http://packages.dotdeb.org $(lsb_release -sc) all" | tee /etc/apt/sources.list.d/dotdeb.list
@@ -58,112 +30,23 @@ wget --quiet -O - https://www.dotdeb.org/dotdeb.gpg | apt-key add -
 
 apt-get update -qq
 apt-get upgrade -y
-echo "Done!"
-
-info "Enabling site configuration"
-mkdir -p /etc/nginx/conf.d
-[ -f /etc/nginx/conf.d/app.conf ] && rm -f /etc/nginx/conf.d/app.conf
-[ -L /etc/nginx/conf.d/app.conf ] && rm -f /etc/nginx/conf.d/app.conf
-ln -s `echo ${app_path}`/vagrant/config/nginx-app.conf /etc/nginx/conf.d/app.conf
-echo "Done!"
+info "Done!"
 
 info "Install additional software"
-apt-get install -y git php5-dev php5-cli php5-fpm php5-intl php5-mysqlnd php5-curl php5-xdebug php5-xhprof\
-                php5-gd php5-imagick nginx mc htop graphviz gdebi locales-all mytop
+apt-get install -y git mc htop gdebi locales-all mytop
 
 systemctl unmask nginx.service
 systemctl enable nginx.service
 apt-get autoremove -y
-echo "Done!"
+info "Done!"
 
 info "Configure locales"
 localectl set-locale LANG=ru_RU.utf8
 
-info "Prepare root password for MySQL server"
-debconf-set-selections <<< "mariadb-server-10.0 mysql-server/root_password password \"''\""
-debconf-set-selections <<< "mariadb-server-10.0 mysql-server/root_password_again password \"''\""
-echo "Done!"
-
-apt-get install -y mariadb-server-10.0
-
-info "Configure MySQL server"
-sed -i "s/.*bind-address.*/bind-address = 0.0.0.0/" /etc/mysql/my.cnf
-echo "Done!"
-
-info "Configure PHP-FPM"
-sed -i 's/user = www-data/user = vagrant/g' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/group = www-data/group = vagrant/g' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/owner = www-data/owner = vagrant/g' /etc/php5/fpm/pool.d/www.conf
-sed -i 's/;listen.mode = 0660/listen.mode = 0660/g' /etc/php5/fpm/pool.d/www.conf
-
-sed -i 's/short_open_tag = Off/short_open_tag = On/g' /etc/php5/fpm/php.ini
-sed -i 's/short_open_tag = Off/short_open_tag = On/g' /etc/php5/cli/php.ini
-
-sed -i 's/;date.timezone =/date.timezone = "'${timezone//\//\\/}'"/g' /etc/php5/fpm/php.ini
-sed -i 's/;date.timezone =/date.timezone = "'${timezone//\//\\/}'"/g' /etc/php5/cli/php.ini
-
-sed -i 's/memory_limit = 128M/memory_limit = -1/g' /etc/php5/fpm/php.ini
-sed -i 's/memory_limit = 128M/memory_limit = -1/g' /etc/php5/cli/php.ini
-
-[ -L /etc/php5/cli/conf.d/20-xhprof.ini ] && rm -f /etc/php5/cli/conf.d/20-xhprof.ini
-ln -s ../../mods-available/xhprof.ini /etc/php5/cli/conf.d/20-xhprof.ini
-[ -L /etc/php5/fpm/conf.d/20-xhprof.ini ] && rm -f /etc/php5/fpm/conf.d/20-xhprof.ini
-ln -s ../../mods-available/xhprof.ini /etc/php5/fpm/conf.d/20-xhprof.ini
-
-echo "extension = xhprof.so" | tee /etc/php5/mods-available/xhprof.ini
-echo 'xhprof.output_dir = "'${www_path}'/xhprof/logs"' >> /etc/php5/mods-available/xhprof.ini
-
-cat > /etc/php5/mods-available/xdebug_cli.ini<<-FILE
-[xdebug]
-zend_extension=xdebug.so
-xdebug.max_nesting_level=1000
-
-xdebug.default_enable=1
-xdebug.remote_enable=1
-xdebug.remote_connect_back=1
-xdebug.remote_autostart=1
-xdebug.remote_host=${gateway}
-xdebug.remote_port=9000
-xdebug.remote_handler="dbgp"
-debug.remote_log=/var/log/php5-xdebug-cli.log
-xdebug.idekey=PHPSTORM
-
-FILE
-
-cat > /etc/php5/mods-available/xdebug.ini<<-FILE
-[xdebug]
-zend_extension=xdebug.so
-xdebug.max_nesting_level=1000
-
-xdebug.default_enable=1
-xdebug.remote_enable=1
-xdebug.remote_host=${host_ip}
-xdebug.remote_port=9000
-xdebug.remote_handler="dbgp"
-debug.remote_log=/var/log/php5-xdebug.log
-xdebug.idekey=PHPSTORM
-
-FILE
-echo "Done!"
-
-info "Configure NGINX"
-sed -i 's/user  nginx/user vagrant/g' /etc/nginx/nginx.conf
-sed -i 's/user www-data/user vagrant/g' /etc/nginx/nginx.conf
-echo "Done!"
-
-info "Initailize databases for Percona server"
-mysql -uroot <<< "CREATE DATABASE IF NOT EXISTS "${db_name}" CHARACTER SET utf8 COLLATE utf8_unicode_ci"
-mysql -uroot <<< "CREATE DATABASE IF NOT EXISTS "${db_name}"_tests CHARACTER SET utf8 COLLATE utf8_unicode_ci"
-echo "Done!"
-
-info "Install composer"
-curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-echo "Done!"
-
 info "Create bash-alias for root user"
 echo 'alias app="cd '${app_path}'"' | tee /root/.bash_aliases
 echo 'alias logs="cd '${app_path}'/vgrant/logs"' | tee -a /root/.bash_aliases
-echo "Done!"
+info "Done!"
 
 if [ -z "`grep -i 'force_color_prompt' /root/.bashrc`" ]; then
     info "Enabling colorized prompt for guest console"
@@ -194,4 +77,4 @@ fi
 FILE
 fi
 
-echo "Script once-as-root.sh Done"
+echo "Script `basename $0` Done"

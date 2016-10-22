@@ -27,7 +27,11 @@ class ContactFormTest extends TestCase
 
     public function testContact()
     {
-        $model = new ContactForm();
+        $model = \Yii::$app->getModule('site')
+            ->services
+            ->getObject('site')
+            ->models
+            ->getObject('ContactForm');
 
         $model->attributes = [
             'name' => 'Tester',
