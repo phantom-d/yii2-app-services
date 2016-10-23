@@ -33,7 +33,7 @@ echo 'XDEBUG_CONFIG="idekey=PHPSTORM"' | tee -a /home/vagrant/.profile
 rm -Rf ${COMPOSER_HOME}
 composer global config github-oauth.github.com ${github_token}
 composer global config repositories.assets '{"type": "composer", "url": "https://asset-packagist.org"}'
-composer global require "codeception/codeception=2.0.*" "codeception/specify=*" "codeception/verify=*" --no-update
+composer global require "codeception/codeception=~2.2" "codeception/specify=*" "codeception/verify=*" --no-update
 info "Done!"
 
 info "Install plugins for composer and codeception"

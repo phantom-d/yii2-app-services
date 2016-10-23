@@ -1,12 +1,10 @@
 <?php
 
-namespace tests\codeception\frontend\models;
+namespace tests\codeception\frontend\unit\models;
 
 use Yii;
 use tests\codeception\frontend\unit\DbTestCase;
-use frontend\models\PasswordResetRequestForm;
 use tests\codeception\common\fixtures\UserFixture;
-use common\models\User;
 use Codeception\Specify;
 
 class PasswordResetRequestFormTest extends DbTestCase
@@ -33,8 +31,9 @@ class PasswordResetRequestFormTest extends DbTestCase
     public function testSendEmailWrongUser()
     {
         $this->specify('no user with such email, message should not be sent', function () {
-
-            $model = \Yii::$app->getModule('site')
+            /* @var $model \modules\site\models\PasswordResetRequestForm */
+            $model = \Yii::$app
+                ->getModule('site')
                 ->services
                 ->getObject('site')
                 ->models
@@ -46,7 +45,7 @@ class PasswordResetRequestFormTest extends DbTestCase
         });
 
         $this->specify('user is not active, message should not be sent', function () {
-
+            /* @var $model \modules\site\models\PasswordResetRequestForm */
             $model = \Yii::$app->getModule('site')
                 ->services
                 ->getObject('site')
@@ -61,7 +60,9 @@ class PasswordResetRequestFormTest extends DbTestCase
 
     public function testSendEmailCorrectUser()
     {
-        $model = \Yii::$app->getModule('site')
+        /* @var $model \modules\site\models\PasswordResetRequestForm */
+        $model = \Yii::$app
+            ->getModule('site')
             ->services
             ->getObject('site')
             ->models
@@ -69,6 +70,7 @@ class PasswordResetRequestFormTest extends DbTestCase
 
         $model->email = $this->user[0]['email'];
 
+        /* @var $user \common\models\User */
         $user = \Yii::$app
             ->services
             ->getObject('user')
