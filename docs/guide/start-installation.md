@@ -20,7 +20,7 @@ This way is the easiest but long (~20 min).
    
    ```bash
    git clone https://github.com/phantom-d/yii2-app-services.git
-   cd yii2-app-advanced/vagrant/config
+   cd yii2-app-services/vagrant/config
    cp vagrant-local.example.yml vagrant-local.yml
    ```
    
