@@ -15,6 +15,7 @@ Documentation is at [docs/guide/README.md](docs/guide/README.md).
 [![Latest Stable Version](https://poser.pugx.org/phantom-d/yii2-app-services/v/stable.png)](https://packagist.org/packages/phantom-d/yii2-app-services)
 [![Total Downloads](https://poser.pugx.org/phantom-d/yii2-app-services/downloads.png)](https://packagist.org/packages/phantom-d/yii2-app-services)
 [![License](https://poser.pugx.org/clippings/phantom-pdf/license)](https://packagist.org/packages/clippings/phantom-pdf)
+[![Build Status](https://travis-ci.org/phantom-d/yii2-app-services.svg?branch=master)](https://travis-ci.org/phantom-d/yii2-app-services)
 
 DIRECTORY STRUCTURE
 -------------------
