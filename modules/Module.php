@@ -20,8 +20,9 @@ class Module extends \yii\base\Module
         if ($this->controllerNamespace === null) {
             $class = get_class($this);
             if (($pos   = strrpos($class, '\\')) !== false) {
+                $appPath = explode('/', Yii::getAlias('@app'));
                 $this->controllerNamespace = '\\' . substr($class, 0, $pos)
-                    . '\\' . end(explode('/', Yii::getAlias('@app')))
+                    . '\\' . end($appPath)
                     . '\\controllers';
             }
         }

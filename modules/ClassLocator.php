@@ -10,7 +10,7 @@ use yii\base\UnknownMethodException;
 
 /**
  * Abstract class ClassLocator - Base class for working with module layers
- * 
+ *
  * @author Anton Ermolovich <a.ermolovich@babadu.ru>
  */
 abstract class ClassLocator extends Component
@@ -49,7 +49,7 @@ abstract class ClassLocator extends Component
         if ($this->defaultNamespace === null) {
             $this->defaultNamespace = 'common';
             if ($this->module && !($this->module instanceof \yii\base\Application)) {
-                $class                  = new \ReflectionClass($this->module);
+                $class = new \ReflectionClass($this->module);
                 $this->defaultNamespace = $class->getNamespaceName();
             }
 
@@ -58,11 +58,12 @@ abstract class ClassLocator extends Component
         if ($this->namespace === null) {
             if ($this->module !== null) {
                 if (!($this->module instanceof \yii\base\Application)) {
-                    $class           = new \ReflectionClass($this->module);
+                    $class = new \ReflectionClass($this->module);
                     $this->namespace = $class->getNamespaceName() . '\\';
                 }
             }
-            $this->namespace .= end(explode('/', Yii::getAlias('@app')))
+            $appPath  = explode('/', Yii::getAlias('@app'));
+            $this->namespace .= end($appPath)
                 . ($this->id ? '\\' . $this->id : '');
         }
         if (null === $this->module) {
@@ -104,7 +105,7 @@ abstract class ClassLocator extends Component
                         $params = (array)$params;
                         $args   = [];
                         foreach ($parameters as $index => $param) {
-                            $key        = $param->getName();
+                            $key = $param->getName();
                             $args[$key] = null;
                             if (isset($params[$key])) {
                                 $args[$key] = $params[$key];
@@ -153,9 +154,12 @@ abstract class ClassLocator extends Component
             $object = null;
 
             while (count($parts)) {
-                array_unshift($names, array_pop($parts));
+                $lastPart = array_pop($parts);
+                array_unshift($names, $lastPart);
 
-                $class  = ucfirst(Inflector::id2camel(implode('-', $parts)));
+                $classParts = Inflector::id2camel(implode('-', $parts));
+
+                $class  = ucfirst($classParts);
                 if ($object = $this->getObject($class, [], false)) {
                     break;
                 }
@@ -166,7 +170,9 @@ abstract class ClassLocator extends Component
                 throw new UnknownClassException($message);
             }
 
-            $method = lcfirst(Inflector::id2camel(implode('-', $names)));
+            $methodParts = Inflector::id2camel(implode('-', $names));
+
+            $method = lcfirst($methodParts);
 
             if ($method && method_exists($object, $method)) {
                 return call_user_func_array([$object, $method], $params);
