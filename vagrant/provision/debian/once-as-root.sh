@@ -34,9 +34,6 @@ info "Done!"
 
 info "Install additional software"
 apt-get install -y git mc htop gdebi locales-all mytop
-
-systemctl unmask nginx.service
-systemctl enable nginx.service
 apt-get autoremove -y
 info "Done!"
 

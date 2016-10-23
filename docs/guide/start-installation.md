@@ -50,7 +50,7 @@ That's all. You just need to wait for completion! After that you can access proj
 3. Reboot
 4. Create GitHub [personal API token](https://github.com/blog/1509-personal-api-tokens)
 5. Prepare project:
-   * download repo [yii2-app-advanced](https://github.com/phantom-d/yii2-app-services/archive/master.zip)
+   * download repo [yii2-app-services](https://github.com/phantom-d/yii2-app-services/archive/master.zip)
    * unzip it
    * go into directory `yii2-app-services-master/vagrant/config`
    * copy `vagrant-local.example.yml` to `vagrant-local.yml`
