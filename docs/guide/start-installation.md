@@ -19,7 +19,7 @@ This way is the easiest but long (~20 min).
 3. Prepare project:
    
    ```bash
-   git clone https://github.com/yiisoft/yii2-app-advanced.git
+   git clone https://github.com/phantom-d/yii2-app-services.git
    cd yii2-app-advanced/vagrant/config
    cp vagrant-local.example.yml vagrant-local.yml
    ```
@@ -28,7 +28,7 @@ This way is the easiest but long (~20 min).
 5. Change directory to project root:
 
    ```bash
-   cd yii2-app-advanced
+   cd yii2-app-services
    ```
 
 5. Run commands:
@@ -39,8 +39,9 @@ This way is the easiest but long (~20 min).
    ```
    
 That's all. You just need to wait for completion! After that you can access project locally by URLs:
-* frontend: http://y2aa-frontend.dev
-* backend: http://y2aa-backend.dev
+* frontend: http://y2as.local
+* backend: http://admin.y2as.local
+* xhprof: http://xh.y2as.local
    
 #### Manual for Windows users
 
@@ -49,20 +50,13 @@ That's all. You just need to wait for completion! After that you can access proj
 3. Reboot
 4. Create GitHub [personal API token](https://github.com/blog/1509-personal-api-tokens)
 5. Prepare project:
-   * download repo [yii2-app-advanced](https://github.com/yiisoft/yii2-app-advanced/archive/master.zip)
+   * download repo [yii2-app-advanced](https://github.com/phantom-d/yii2-app-services/archive/master.zip)
    * unzip it
-   * go into directory `yii2-app-advanced-master/vagrant/config`
+   * go into directory `yii2-app-services-master/vagrant/config`
    * copy `vagrant-local.example.yml` to `vagrant-local.yml`
 
 6. Place your GitHub personal API token to `vagrant-local.yml`
-7. Add the following lines to [hosts file](https://en.wikipedia.org/wiki/Hosts_(file)):
-   
-   ```
-   192.168.83.137 y2aa-frontend.dev
-   192.168.83.137 y2aa-backend.dev
-   ```
-
-8. Open terminal (`cmd.exe`), **change directory to project root** and run commands:
+7. Open terminal (`cmd.exe`), **change directory to project root** and run commands:
 
    ```bash
    vagrant plugin install vagrant-hostmanager
@@ -72,8 +66,9 @@ That's all. You just need to wait for completion! After that you can access proj
    (You can read [here](http://www.wikihow.com/Change-Directories-in-Command-Prompt) how to change directories in command prompt) 
 
 That's all. You just need to wait for completion! After that you can access project locally by URLs:
-* frontend: http://y2aa-frontend.dev
-* backend: http://y2aa-backend.dev
+* frontend: http://y2as.local
+* backend: http://admin.y2as.local
+* xhprof: http://xh.y2as.local
 
 ## Installing using Composer
 
@@ -82,21 +77,10 @@ If you do not have [Composer](http://getcomposer.org/), follow the instructions 
 
 With Composer installed, you can then install the application using the following commands:
 
-    composer global require "fxp/composer-asset-plugin:~1.1.1"
-    composer create-project --prefer-dist yiisoft/yii2-app-advanced yii-application
+    composer create-project --prefer-dist phantom-d/yii2-app-services yii-application
 
-The first command installs the [composer asset plugin](https://github.com/francoispluchino/composer-asset-plugin/)
-which allows managing bower and npm package dependencies through Composer. You only need to run this command
-once for all. The second command installs the advanced application in a directory named `yii-application`.
+The command installs the advanced application in a directory named `yii-application`.
 You can choose a different directory name if you want.
-
-## Install from an Archive File
-
-Extract the archive file downloaded from [yiiframework.com](http://www.yiiframework.com/download/) to
-a directory named `advanced` that is directly under the Web root.
-
-Then follow the instructions given in the next subsection.
-
 
 ## Preparing application
 
