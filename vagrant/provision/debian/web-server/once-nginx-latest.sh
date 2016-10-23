@@ -20,7 +20,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 info "Update OS software"
 echo "deb http://nginx.org/packages/debian/ $(lsb_release -sc) nginx" | tee /etc/apt/sources.list.d/nginx.list
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ABF5BD827BD9BF62
+wget --quiet -O - http://nginx.org/packages/keys/nginx_signing.key | apt-key add -
 
 apt-get update -qq
 apt-get upgrade -y
