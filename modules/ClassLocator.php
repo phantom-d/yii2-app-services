@@ -37,9 +37,19 @@ abstract class ClassLocator extends Component
     public $module;
 
     /**
+     * @var boolean Search class throw parent module
+     */
+    public $throwParents = false;
+
+    /**
      * @var string Suffix for class name
      */
     protected $suffix = '';
+
+    /**
+     * @var boolean Get object with exception
+     */
+    private $_strict = true;
 
     /**
      * @inheritdoc
@@ -48,26 +58,21 @@ abstract class ClassLocator extends Component
     {
         if ($this->defaultNamespace === null) {
             $this->defaultNamespace = 'common';
-            if ($this->module && !($this->module instanceof \yii\base\Application)) {
-                $class = new \ReflectionClass($this->module);
-                $this->defaultNamespace = $class->getNamespaceName();
+            if ($this->module) {
+                $class = $this->module->className();
+                $this->defaultNamespace = mb_substr($class, 0, mb_strrpos($class, '\\'));
             }
-
             $this->defaultNamespace .= ($this->id ? '\\' . $this->id : '');
         }
         if ($this->namespace === null) {
-            if ($this->module !== null) {
-                if (!($this->module instanceof \yii\base\Application)) {
-                    $class = new \ReflectionClass($this->module);
-                    $this->namespace = $class->getNamespaceName() . '\\';
-                }
+            if ($this->module) {
+                $class = $this->module->className();
+                $this->namespace = mb_substr($class, 0, mb_strrpos($class, '\\')) . '\\';
             }
-            $appPath  = explode('/', Yii::getAlias('@app'));
+            $appPath = explode('/', Yii::getAlias('@app'));
+
             $this->namespace .= end($appPath)
                 . ($this->id ? '\\' . $this->id : '');
-        }
-        if (null === $this->module) {
-            $this->module = &Yii::$app;
         }
         parent::init();
     }
@@ -82,7 +87,7 @@ abstract class ClassLocator extends Component
      *
      * @throws \yii\base\UnknownClassException
      */
-    public function getObject($name, $params = [], $strict = true)
+    public function getObject($name, $params = [])
     {
         try {
             $className = '\\' . Inflector::id2camel($name, '_') . strval($this->suffix);
@@ -98,41 +103,30 @@ abstract class ClassLocator extends Component
                         $params['module'] = &$this->module;
                     }
                 } else {
-                    $reflector  = new \ReflectionClass($class);
-                    /* @var $parameters \ReflectionParameter */
-                    $parameters = $reflector->getMethod('__construct')->getParameters();
-                    if (count($parameters) > 1) {
-                        $params = (array)$params;
-                        $args   = [];
-                        foreach ($parameters as $index => $param) {
-                            $key = $param->getName();
-                            $args[$key] = null;
-                            if (isset($params[$key])) {
-                                $args[$key] = $params[$key];
-                                unset($params[$key]);
-                            } elseif (isset($params[$index])) {
-                                $args[$key] = $params[$index];
-                                unset($params[$index]);
-                            } else {
-                                if ($param->isOptional()) {
-                                    $args[$key] = $param->getDefaultValue();
-                                }
+                    $args = func_get_args();
+                    array_shift($args);
+                    if (1 === count($args)) {
+                        return new $class($params);
+                    } else {
+                        $reflector  = new \ReflectionClass($class);
+                        if (empty($args)) {
+                            /* @var $parameters \ReflectionParameter */
+                            $parameters = $reflector->getMethod('__construct')->getParameters();
+                            foreach ($parameters as $value) {
+                                $args[] = $value->isOptional() ? $value->getDefaultValue() : null;
                             }
                         }
-                        if (false === empty($params)) {
-                            $args['config'] = $params;
-                        }
                         return $reflector->newInstanceArgs($args);
-                    } else {
-                        return new $class($params);
                     }
                 }
                 return \yii\di\Instance::ensure($params, $class);
             }
 
-            if ($strict) {
+            if ($this->_strict) {
                 $message = Yii::t('yii', 'Calling unknown class: {class}', ['class' => $class]);
                 throw new UnknownClassException($message);
+            } else {
+                $this->_strict = true;
             }
         } catch (\Exception $e) {
             throw $e;
@@ -147,10 +141,12 @@ abstract class ClassLocator extends Component
     public function __call($name, $params)
     {
         try {
+            $component = ($this instanceof \modules\Services) ? 'services' : 'models';
+
             $parts = explode('-', Inflector::camel2id($name));
 
             $names  = [];
-            /* @var $object \modules\BaseService */
+            /* @var $object \modules\Service */
             $object = null;
 
             while (count($parts)) {
@@ -159,8 +155,9 @@ abstract class ClassLocator extends Component
 
                 $classParts = Inflector::id2camel(implode('-', $parts));
 
-                $class  = ucfirst($classParts);
-                if ($object = $this->getObject($class, [], false)) {
+                $class = ucfirst($classParts);
+                $this->_strict = false;
+                if ($object = $this->getObject($class)) {
                     break;
                 }
             }
@@ -176,6 +173,10 @@ abstract class ClassLocator extends Component
 
             if ($method && method_exists($object, $method)) {
                 return call_user_func_array([$object, $method], $params);
+            }
+
+            if ($this->throwParents && $this->module) {
+                return call_user_func_array([$this->module->{$component}, $name], $params);
             }
 
             $message = Yii::t(

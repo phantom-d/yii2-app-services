@@ -11,7 +11,7 @@ use yii\base\InvalidParamException;
  *
  * @author Anton Ermolovich <a.ermolovich@babadu.ru>
  */
-class SiteService extends \modules\BaseService
+class SiteService extends \modules\Service
 {
 
     /**

@@ -39,12 +39,21 @@ class Module extends \yii\base\Module
         $this->setViewPath($viewPath);
     }
 
-    public function getServices()
+    /**
+     * Get object for working with module service layer
+     *
+     * @param array $params Services interface parameters
+     * @return type
+     */
+    public function getServices($params = [])
     {
-        $params = [
-            'class'  => '\modules\Services',
-            'module' => &$this,
-        ];
+        $params = \yii\helpers\ArrayHelper::merge(
+            [
+                'class'  => '\modules\Services',
+                'module' => &$this,
+            ],
+            $params
+        );
         return \yii\di\Instance::ensure($params);
     }
 

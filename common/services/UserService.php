@@ -9,7 +9,7 @@ use Yii;
  *
  * @author Anton Ermolovich <a.ermolovich@babadu.ru>
  */
-class UserService extends \modules\BaseService
+class UserService extends \modules\Service
 {
 
     /**

@@ -16,6 +16,7 @@ class Bootstrap implements BootstrapInterface
         $app->getUrlManager()->addRules([
             ''                             => 'site/default/index',
             'site/<action:[a-zA-Z0-9_-]+>' => 'site/default/<action>',
+            'site/<action:[a-zA-Z0-9_-]+>/<token:[a-zA-Z0-9_-]+>' => 'site/default/<action>',
         ]);
     }
 
