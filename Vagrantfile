@@ -126,6 +126,11 @@ Vagrant.configure(2) do |config|
   config.hostmanager.aliases            = domains.values
 
   # provisioners
+  config.vm.provision "fix-no-tty", type: "shell" do |s|
+    s.privileged = false
+    s.inline = "sudo sed -i '/tty/!s/mesg n/tty -s \\&\\& mesg n/' /root/.profile"
+  end
+
   # once run
   config.vm.provision 'shell', path: "./vagrant/provision/#{options['provision']}/once-as-root.sh", args: [options['app_path'], options['timezone']]
   config.vm.provision 'shell', path: "./vagrant/provision/#{options['provision']}/db/once-#{options['db_server']}.sh", args: [options['app_path'], options['db_name']]
