@@ -24,6 +24,32 @@ domains = {
   xhprof:  "xh.#{options['domain_name']}",
 }
 
+module OS
+    def OS.windows?
+        (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+    end
+    def OS.mac?
+        (/darwin/ =~ RUBY_PLATFORM) != nil
+    end
+    def OS.unix?
+        !OS.windows?
+    end
+    def OS.linux?
+        OS.unix? and not OS.mac?
+    end
+end
+
+if OS.windows?
+  unless Vagrant.has_plugin?("vagrant-winnfsd")
+    puts "Installing plugins: vagrant-winnfsd"
+    if system "vagrant plugin install vagrant-winnfsd"
+      exec "vagrant #{ARGV.join(' ')}"
+    else
+      abort "Installation of one or more plugins has failed. Aborting."
+    end
+  end
+end
+
 # vagrant configurate
 Vagrant.configure(2) do |config|
   # select the box
@@ -65,8 +91,26 @@ Vagrant.configure(2) do |config|
     config.vm.network "forwarded_port", guest: 22, host: options['vagrant_ssh'], id: 'ssh'
   end
 
-  # sync: folder 'yii2-app-services' (host machine) -> folder '/var/www/y2as' (guest machine)
-  config.vm.synced_folder './', options['app_path'], owner: 'vagrant', group: 'vagrant'
+  nfs_mount = false
+
+  if OS.windows?
+    if Vagrant.has_plugin?("vagrant-winnfsd")
+      config.winnfsd.uid = Process.uid
+      config.winnfsd.gid = Process.gid
+      nfs_mount = true
+    end
+  else
+    config.nfs.map_uid = Process.uid
+    config.nfs.map_gid = Process.gid
+    nfs_mount = true
+  end
+
+  # sync: project folder (host machine) -> folder options['app_path'] (guest machine)
+  if nfs_mount
+    config.vm.synced_folder './', options['app_path'], nfs: true, nfs_udp: false
+  else
+    config.vm.synced_folder './', options['app_path'], owner: 'vagrant', group: 'vagrant'
+  end
 
   # disable folder '/vagrant' (guest machine)
   config.vm.synced_folder '.', '/vagrant', disabled: true
