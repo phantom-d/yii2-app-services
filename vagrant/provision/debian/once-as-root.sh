@@ -33,7 +33,7 @@ apt-get upgrade -y
 info "Done!"
 
 info "Install additional software"
-apt-get install -y git mc htop gdebi locales-all mytop
+apt-get install -y git mc htop gdebi-core locales-all mytop
 apt-get autoremove -y
 info "Done!"
 
