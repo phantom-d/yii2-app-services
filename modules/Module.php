@@ -21,7 +21,7 @@ class Module extends \yii\base\Module
             $class = get_class($this);
             if (($pos   = strrpos($class, '\\')) !== false) {
                 $appPath = explode('/', Yii::getAlias('@app'));
-                $this->controllerNamespace = '\\' . substr($class, 0, $pos)
+                $this->controllerNamespace = substr($class, 0, $pos)
                     . '\\' . end($appPath)
                     . '\\controllers';
             }
